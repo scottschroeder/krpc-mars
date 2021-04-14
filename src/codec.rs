@@ -302,17 +302,24 @@ impl<T, U, V, W> RPCEncodable for (T, U, V, W)
 }
 
 
-pub fn read_message<M>(sock: &mut Read) -> Result<M, protobuf::ProtobufError>
+pub fn read_message<M>(sock: &mut dyn Read) -> Result<M, protobuf::ProtobufError>
     where M: protobuf::Message
 {
     let mut input_stream = protobuf::CodedInputStream::new(sock);
-    protobuf::parse_length_delimited_from::<M>(&mut input_stream)
+    let read_message_result = protobuf::parse_length_delimited_from::<M>(&mut input_stream);
+
+    if let Err(why) = &read_message_result {
+        log::error!("Error reading message: [{}]", why);
+    }
+
+    read_message_result
 }
 
 
 pub fn extract_result<T>(proc_result: &krpc::ProcedureResult) -> Result<T, Error>
     where T: RPCExtractable
 {
+    log::trace!("Extracting result: {:?}", proc_result);
     if proc_result.has_error() {
         Err(Error::Procedure(proc_result.get_error().clone()))
     }
