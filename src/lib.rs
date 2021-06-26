@@ -57,7 +57,7 @@ pub struct CallHandle<T> {
 /// A handle to a stream. The type parameter is the type of the value produced by the stream.
 #[derive(Copy, Clone, Debug)]
 pub struct StreamHandle<T> {
-    stream_id: StreamID,
+    pub stream_id: StreamID,
     _phantom: PhantomData<T>,
 }
 
@@ -275,6 +275,10 @@ impl<T> CallHandle<T>
 
     fn get_call(&self) -> &krpc::ProcedureCall {
         &self.proc_call
+    }
+
+    pub fn into_call(self) -> krpc::ProcedureCall {
+        self.proc_call
     }
 }
 
